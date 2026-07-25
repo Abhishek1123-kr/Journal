@@ -28,7 +28,7 @@ const App: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#080A10' }}>
       <MainLayout>
-        <Box sx={{ display: 'flex', gap: 3.5, width: '100%', alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, width: '100%', alignItems: 'flex-start' }}>
           {/* Collapsible Animated Side Navigation Bar */}
           <AnimatedSidebar activeSection={activeSection} onSelectSection={handleSelectSection} />
 

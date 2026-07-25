@@ -54,15 +54,15 @@ export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
       <Header />
 
-      <Container maxWidth="lg" sx={{ py: 6, flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="xl" sx={{ py: 5, flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, px: { xs: 2, md: 4 } }}>
         {/* Hero Banner Section */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Box sx={{ display: 'flex', gap: 1.5, mb: 2.5, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 1.5, mb: 2.5, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
               <Chip
                 icon={<Shield size={14} color="#00F2FE" />}
                 label="Zero-Knowledge Enabled"
@@ -73,6 +73,8 @@ export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
                   border: '1px solid rgba(0, 242, 254, 0.3)',
                   fontWeight: 700,
                   boxShadow: '0 0 15px rgba(0, 242, 254, 0.15)',
+                  px: 1,
+                  '& .MuiChip-icon': { ml: 0.5, mr: 0.5 },
                 }}
               />
               <Chip
@@ -85,6 +87,8 @@ export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
                   border: '1px solid rgba(16, 185, 129, 0.3)',
                   fontWeight: 700,
                   boxShadow: '0 0 15px rgba(16, 185, 129, 0.15)',
+                  px: 1,
+                  '& .MuiChip-icon': { ml: 0.5, mr: 0.5 },
                 }}
               />
               <Chip
@@ -96,6 +100,8 @@ export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
                   color: '#C084FC',
                   border: '1px solid rgba(168, 85, 247, 0.3)',
                   fontWeight: 700,
+                  px: 1,
+                  '& .MuiChip-icon': { ml: 0.5, mr: 0.5 },
                 }}
               />
             </Box>

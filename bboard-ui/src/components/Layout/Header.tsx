@@ -116,6 +116,8 @@ export const Header: React.FC = () => (
             borderStyle: 'solid',
             color: '#00FF88',
             fontWeight: 700,
+            px: 1,
+            '& .MuiChip-icon': { ml: 0.5, mr: 0.5 },
           }}
         />
 
@@ -131,6 +133,8 @@ export const Header: React.FC = () => (
             borderStyle: 'solid',
             color: '#C084FC',
             fontWeight: 700,
+            px: 1,
+            '& .MuiChip-icon': { ml: 0.5, mr: 0.5 },
           }}
         />
 
