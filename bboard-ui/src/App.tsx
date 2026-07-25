@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   MainLayout,
   Board,
@@ -12,6 +13,9 @@ import {
   ArchitectureSection,
   FaqSection,
   BlockchainLoader,
+  NetworkHealthPage,
+  DocumentationPage,
+  CircuitSpecPage,
 } from './components';
 import { useDeployedBoardContext } from './hooks';
 import { type BoardDeployment } from './contexts';
@@ -20,7 +24,7 @@ import { type Observable } from 'rxjs';
 const App: React.FC = () => {
   const boardApiProvider = useDeployedBoardContext();
   const [boardDeployments, setBoardDeployments] = useState<Array<Observable<BoardDeployment>>>([]);
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState('dashboard');
   const [isDeploying, setIsDeploying] = useState(false);
 
   useEffect(() => {
@@ -31,8 +35,9 @@ const App: React.FC = () => {
   }, [boardApiProvider]);
 
   const handleNavigateSection = (sectionId: string) => {
-    setActiveSection(sectionId.replace('section-', ''));
-    const element = document.getElementById(sectionId);
+    const pageId = sectionId.replace('section-', '');
+    setActiveSection(pageId);
+    const element = document.getElementById(`workspace-top`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
@@ -41,7 +46,7 @@ const App: React.FC = () => {
   const handleDeployClick = () => {
     setIsDeploying(true);
     boardApiProvider.resolve();
-    handleNavigateSection('section-proposals');
+    setActiveSection('proposals');
     setTimeout(() => setIsDeploying(false), 4500);
   };
 
@@ -49,64 +54,144 @@ const App: React.FC = () => {
     <Box sx={{ minHeight: '100vh', backgroundColor: '#080A10' }}>
       <BlockchainLoader isLoading={isDeploying} />
       <MainLayout onNavigateSection={handleNavigateSection}>
-        {/* Section 01: Hero Section */}
+        {/* Hero Banner Showcase */}
         <HeroSection
           onDeployClick={handleDeployClick}
-          onViewDashboardClick={() => handleNavigateSection('section-dashboard')}
+          onViewDashboardClick={() => handleNavigateSection('dashboard')}
         />
 
-        {/* Section 02: Dashboard Workspace with Side Navigation Bar */}
+        <div id="workspace-top" />
+
+        {/* Dynamic 2-Column Sidebar & Dedicated Pages Router */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, width: '100%', alignItems: 'flex-start', mb: 8 }}>
           {/* Collapsible Animated Side Navigation Bar */}
           <AnimatedSidebar activeSection={activeSection} onSelectSection={handleNavigateSection} />
 
-          {/* Main Dashboard Workspace */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* Real-Time Dashboard Statistics */}
-            <div id="section-dashboard">
-              <DashboardStats />
-            </div>
+          {/* Dedicated Page View Content */}
+          <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <AnimatePresence mode="wait">
+              {/* PAGE 1: DASHBOARD VIEW */}
+              {activeSection === 'dashboard' && (
+                <motion.div
+                  key="dashboard"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <DashboardStats />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      gap: 4,
+                      width: '100%',
+                      mb: 6,
+                    }}
+                  >
+                    {boardDeployments.map((boardDeployment, idx) => (
+                      <div data-testid={`board-${idx}`} key={`board-${idx}`}>
+                        <Board boardDeployment$={boardDeployment} />
+                      </div>
+                    ))}
+                    <div data-testid="board-start">
+                      <Board />
+                    </div>
+                  </Box>
+                  <PrivacyExplanation />
+                </motion.div>
+              )}
 
-            {/* Dynamic Contract Workspace Grid */}
-            <div id="section-proposals">
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                  gap: 4,
-                  width: '100%',
-                  mb: 6,
-                }}
-              >
-                {boardDeployments.map((boardDeployment, idx) => (
-                  <div data-testid={`board-${idx}`} key={`board-${idx}`}>
-                    <Board boardDeployment$={boardDeployment} />
-                  </div>
-                ))}
-                <div data-testid="board-start">
-                  <Board />
-                </div>
-              </Box>
-            </div>
+              {/* PAGE 2: ACTIVE PROPOSALS / CONTRACTS */}
+              {activeSection === 'proposals' && (
+                <motion.div
+                  key="proposals"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      gap: 4,
+                      width: '100%',
+                      mb: 6,
+                    }}
+                  >
+                    {boardDeployments.map((boardDeployment, idx) => (
+                      <div data-testid={`board-${idx}`} key={`board-${idx}`}>
+                        <Board boardDeployment$={boardDeployment} />
+                      </div>
+                    ))}
+                    <div data-testid="board-start">
+                      <Board />
+                    </div>
+                  </Box>
+                </motion.div>
+              )}
 
-            {/* ZK Selective Disclosure & Privacy Explanation Section */}
-            <div id="section-privacy">
-              <PrivacyExplanation />
-            </div>
+              {/* PAGE 3: PRIVACY HUB */}
+              {activeSection === 'privacy' && (
+                <motion.div
+                  key="privacy"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <PrivacyExplanation />
+                </motion.div>
+              )}
+
+              {/* PAGE 4: ZK CIRCUIT SPEC */}
+              {activeSection === 'circuits' && (
+                <motion.div
+                  key="circuits"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <CircuitSpecPage />
+                </motion.div>
+              )}
+
+              {/* PAGE 5: NETWORK HEALTH */}
+              {activeSection === 'network' && (
+                <motion.div
+                  key="network"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <NetworkHealthPage />
+                </motion.div>
+              )}
+
+              {/* PAGE 6: DOCUMENTATION */}
+              {activeSection === 'docs' && (
+                <motion.div
+                  key="docs"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <DocumentationPage />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Box>
         </Box>
 
-        {/* Section 03: Features Showcase */}
+        {/* Section Features & Protocol Specs */}
         <FeaturesSection />
-
-        {/* Section 04: How It Works Protocol Timeline */}
         <HowItWorksSection />
-
-        {/* Section 05: System Architecture & Tech Stack */}
-        <ArchitectureSection />
-
-        {/* Section 06: Frequently Asked Questions */}
         <FaqSection />
       </MainLayout>
     </Box>
