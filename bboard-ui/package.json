@@ -37,7 +37,7 @@
     "vite-plugin-node-polyfills": "^0.28.0"
   },
   "optionalDependencies": {
-    "@rolldown/binding-win32-x64-msvc": "^1.0.3",
+    "@rolldown/binding-win32-x64-msvc": "^1.2.0",
     "@rollup/rollup-win32-x64-msvc": "^4.62.2"
   }
 }
