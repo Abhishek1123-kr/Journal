@@ -16,16 +16,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { type ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import {
+  Alert,
   Backdrop,
-  CircularProgress,
+  Box,
+  Button,
   Card,
   CardActions,
   CardContent,
   CardHeader,
+  Chip,
+  CircularProgress,
   IconButton,
   Skeleton,
-  Typography,
   TextField,
+  Tooltip,
+  Typography,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
@@ -163,105 +168,197 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   }, [boardDeployment, setIsWorking, setErrorMessage, setDeployedBoardAPI]);
 
   return (
-    <Card sx={{ position: 'relative', width: 275, height: 300, minWidth: 275, minHeight: 300 }} color="primary">
+    <Card
+      sx={{
+        position: 'relative',
+        width: { xs: '100%', sm: 380 },
+        minHeight: 360,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        p: 1,
+      }}
+    >
       {!boardDeployment$ && (
         <EmptyCardContent onCreateBoardCallback={onCreateBoard} onJoinBoardCallback={onJoinBoard} />
       )}
 
       {boardDeployment$ && (
         <React.Fragment>
+          {/* ZK Working Backdrop */}
           <Backdrop
-            sx={{ position: 'absolute', color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            sx={{
+              position: 'absolute',
+              color: '#00F2FE',
+              zIndex: (theme) => theme.zIndex.drawer + 1,
+              backgroundColor: 'rgba(8, 10, 16, 0.85)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: 5,
+              flexDirection: 'column',
+              gap: 2,
+            }}
             open={isWorking}
           >
-            <CircularProgress data-testid="board-working-indicator" />
-          </Backdrop>
-          <Backdrop
-            sx={{ position: 'absolute', color: '#ff0000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-            open={!!errorMessage}
-          >
-            <StopIcon fontSize="large" />
-            <Typography component="div" data-testid="board-error-message">
-              {errorMessage}
+            <CircularProgress data-testid="board-working-indicator" color="primary" size={48} />
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#00F2FE' }}>
+              Executing ZK Circuit & Generating Proof...
             </Typography>
           </Backdrop>
+
+          {/* Header Bar */}
           <CardHeader
             avatar={
               boardState ? (
                 boardState.state === State.VACANT || (boardState.state === State.OCCUPIED && boardState.isOwner) ? (
-                  <LockOpenIcon data-testid="post-unlocked-icon" />
+                  <Chip
+                    icon={<LockOpenIcon sx={{ fontSize: '14px !important', color: '#00FF88 !important' }} />}
+                    label={boardState.state === State.VACANT ? 'Vacant' : 'Unlocked (Author)'}
+                    size="small"
+                    sx={{ backgroundColor: 'rgba(0,255,136,0.1)', color: '#00FF88', fontWeight: 700 }}
+                  />
                 ) : (
-                  <LockIcon data-testid="post-locked-icon" />
+                  <Chip
+                    icon={<LockIcon sx={{ fontSize: '14px !important', color: '#E100FF !important' }} />}
+                    label="Occupied (Shielded)"
+                    size="small"
+                    sx={{ backgroundColor: 'rgba(127,0,255,0.15)', color: '#E100FF', fontWeight: 700 }}
+                  />
                 )
               ) : (
-                <Skeleton variant="circular" width={20} height={20} />
+                <Skeleton variant="rectangular" width={90} height={24} sx={{ borderRadius: 2 }} />
               )
             }
-            titleTypographyProps={{ color: 'primary' }}
-            title={toShortFormatContractAddress(deployedBoardAPI?.deployedContractAddress) ?? 'Loading...'}
-            action={
+            title={
               deployedBoardAPI?.deployedContractAddress ? (
-                <IconButton title="Copy contract address" onClick={onCopyContractAddress}>
-                  <CopyIcon fontSize="small" />
-                </IconButton>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: '#94A3B8' }}>
+                    {toShortFormatContractAddress(deployedBoardAPI.deployedContractAddress)}
+                  </Typography>
+                  <Tooltip title="Copy Contract Address">
+                    <IconButton size="small" onClick={onCopyContractAddress} sx={{ color: '#00F2FE' }}>
+                      <CopyIcon sx={{ fontSize: 14 }} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               ) : (
-                <Skeleton variant="circular" width={20} height={20} />
+                <Skeleton variant="text" width={100} />
               )
             }
           />
-          <CardContent>
+
+          {/* Error Banner inside Card */}
+          {errorMessage && (
+            <Alert
+              severity="error"
+              sx={{
+                mx: 2,
+                mb: 1,
+                backgroundColor: 'rgba(255, 51, 102, 0.1)',
+                border: '1px solid rgba(255, 51, 102, 0.3)',
+                color: '#FF3366',
+                borderRadius: 3,
+                fontSize: '0.8rem',
+              }}
+              onClose={() => setErrorMessage(undefined)}
+              data-testid="board-error-message"
+            >
+              {errorMessage}
+            </Alert>
+          )}
+
+          {/* Main Card Content */}
+          <CardContent sx={{ flex: 1, pt: 1 }}>
             {boardState ? (
               boardState.state === State.OCCUPIED ? (
-                <Typography data-testid="board-posted-message" sx={{ minHeight: 160 }} color="primary">
-                  {boardState.message}
-                </Typography>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    minHeight: 140,
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: '#00F2FE', fontWeight: 600, display: 'block', mb: 1 }}>
+                    Active Journal Entry:
+                  </Typography>
+                  <Typography data-testid="board-posted-message" variant="body2" sx={{ color: '#F8FAFC', whiteSpace: 'pre-wrap' }}>
+                    {boardState.message}
+                  </Typography>
+                </Box>
               ) : (
                 <TextField
                   id="message-prompt"
                   data-testid="board-message-prompt"
                   variant="outlined"
-                  focused
                   fullWidth
                   multiline
-                  minRows={6}
-                  maxRows={6}
-                  placeholder="Message to post"
+                  minRows={4}
+                  maxRows={4}
+                  placeholder="Write your private journal entry here..."
                   size="small"
-                  color="primary"
-                  slotProps={{ htmlInput: { style: { color: 'black' } } }}
-                  onChange={(e) => {
-                    setMessagePrompt(e.target.value);
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                      borderRadius: 3,
+                      color: '#F8FAFC',
+                      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.15)' },
+                      '&:hover fieldset': { borderColor: '#00F2FE' },
+                      '&.Mui-focused fieldset': { borderColor: '#00F2FE' },
+                    },
                   }}
+                  onChange={(e) => setMessagePrompt(e.target.value)}
                 />
               )
             ) : (
-              <Skeleton variant="rectangular" width={245} height={160} />
+              <Skeleton variant="rectangular" height={140} sx={{ borderRadius: 3 }} />
             )}
           </CardContent>
-          <CardActions>
+
+          {/* Action Buttons */}
+          <CardActions sx={{ p: 2, pt: 0, justifyContent: 'space-between', gap: 1 }}>
             {deployedBoardAPI ? (
               <React.Fragment>
-                <IconButton
-                  title="Post message"
+                <Button
                   data-testid="board-post-message-btn"
+                  variant="contained"
+                  size="medium"
+                  startIcon={<WriteIcon />}
                   disabled={boardState?.state === State.OCCUPIED || !messagePrompt?.length}
                   onClick={onPostMessage}
+                  sx={{
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%)',
+                    color: '#080A10',
+                    fontWeight: 700,
+                  }}
                 >
-                  <WriteIcon />
-                </IconButton>
-                <IconButton
-                  title="Take down message"
+                  Post Entry
+                </Button>
+                <Button
                   data-testid="board-take-down-message-btn"
+                  variant="outlined"
+                  size="medium"
+                  color="error"
+                  startIcon={<DeleteIcon />}
                   disabled={
                     boardState?.state === State.VACANT || (boardState?.state === State.OCCUPIED && !boardState.isOwner)
                   }
                   onClick={onDeleteMessage}
+                  sx={{
+                    borderColor: 'rgba(255, 51, 102, 0.4)',
+                    color: '#FF3366',
+                    '&:hover': {
+                      borderColor: '#FF3366',
+                      backgroundColor: 'rgba(255, 51, 102, 0.1)',
+                    },
+                  }}
                 >
-                  <DeleteIcon />
-                </IconButton>
+                  Take Down
+                </Button>
               </React.Fragment>
             ) : (
-              <Skeleton variant="rectangular" width={80} height={20} />
+              <Skeleton variant="rectangular" width="100%" height={40} sx={{ borderRadius: 3 }} />
             )}
           </CardActions>
         </React.Fragment>
@@ -271,10 +368,5 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
 };
 
 /** @internal */
-const toShortFormatContractAddress = (contractAddress: ContractAddress | undefined): React.ReactElement | undefined =>
-  // Returns a new string made up of the first, and last, 8 characters of a given contract address.
-  contractAddress ? (
-    <span data-testid="board-address">
-      0x{contractAddress?.replace(/^[A-Fa-f0-9]{6}([A-Fa-f0-9]{8}).*([A-Fa-f0-9]{8})$/g, '$1...$2')}
-    </span>
-  ) : undefined;
+const toShortFormatContractAddress = (contractAddress: ContractAddress | undefined): string | undefined =>
+  contractAddress ? `0x${contractAddress.slice(0, 6)}...${contractAddress.slice(-6)}` : undefined;

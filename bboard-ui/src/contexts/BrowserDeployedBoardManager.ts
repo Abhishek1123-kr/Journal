@@ -267,18 +267,19 @@ const initializeProviders = async (logger: Logger): Promise<BBoardProviders> => 
 };
 
 /** @internal */
+/** @internal */
 const getFirstCompatibleWallet = (): InitialAPI | undefined => {
-  if (!window.midnight) return undefined;
-  return Object.values(window.midnight).find(
+  if (typeof window === 'undefined' || !window.midnight) return undefined;
+  // Check for 1AM, Lace, or any valid Midnight DApp Connector extension in window.midnight
+  const wallets = Object.values(window.midnight);
+  return wallets.find(
     (wallet): wallet is InitialAPI =>
       !!wallet &&
       typeof wallet === 'object' &&
-      'apiVersion' in wallet &&
-      semver.satisfies(wallet.apiVersion, COMPATIBLE_CONNECTOR_API_VERSION),
-  );
+      'connect' in wallet &&
+      typeof (wallet as any).connect === 'function',
+  ) as InitialAPI | undefined;
 };
-
-const COMPATIBLE_CONNECTOR_API_VERSION = '4.x';
 
 /** @internal */
 const connectToWallet = (logger: Logger, networkId: string): Promise<ConnectedAPI> => {
@@ -287,42 +288,53 @@ const connectToWallet = (logger: Logger, networkId: string): Promise<ConnectedAP
       interval(100),
       map(() => getFirstCompatibleWallet()),
       tap((connectorAPI) => {
-        logger.info(connectorAPI, 'Check for wallet connector API');
+        if (connectorAPI) {
+          logger.info(connectorAPI, 'Found compatible Midnight wallet connector API');
+        }
       }),
       filter((connectorAPI): connectorAPI is InitialAPI => !!connectorAPI),
       tap((connectorAPI) => {
-        logger.info(connectorAPI, 'Compatible wallet connector API found. Connecting.');
+        logger.info(connectorAPI, 'Connecting to Midnight wallet connector API...');
       }),
       take(1),
       timeout({
-        first: 1_000,
+        first: 8_000,
         with: () =>
           throwError(() => {
-            logger.error('Could not find wallet connector API');
-
-            return new Error('Could not find Midnight Lace wallet. Extension installed?');
+            logger.error('Could not find Midnight wallet connector API');
+            return new Error('Could not find Midnight wallet extension (1AM / Lace). Please ensure your wallet extension is installed and enabled.');
           }),
       }),
       concatMap(async (initialAPI) => {
-        const connectedAPI = await initialAPI.connect(networkId);
+        let connectedAPI: ConnectedAPI;
+        try {
+          connectedAPI = await initialAPI.connect(networkId);
+        } catch (e) {
+          try {
+            // Fallback to connect() without networkId if networkId string verification differs
+            connectedAPI = await (initialAPI as any).connect();
+          } catch (innerErr) {
+            throw e;
+          }
+        }
         const connectionStatus = await connectedAPI.getConnectionStatus();
-        logger.info(connectionStatus, 'Wallet connector API enabled status');
+        logger.info(connectionStatus, 'Wallet connector API status check');
         return connectedAPI;
       }),
       timeout({
-        first: 5_000,
+        first: 15_000,
         with: () =>
           throwError(() => {
-            logger.error('Wallet connector API has failed to respond');
-
-            return new Error('Midnight Lace wallet has failed to respond. Extension enabled?');
+            logger.error('Wallet connector API timed out waiting for authorization');
+            return new Error('Midnight wallet prompt timed out. Please click "Authorize" or unlock your 1AM / Lace wallet extension.');
           }),
       }),
       catchError((error, apis) =>
         error
           ? throwError(() => {
-              logger.error('Unable to enable connector API' + error);
-              return new Error('Application is not authorized');
+              logger.error({ error }, 'Unable to enable connector API');
+              const message = error instanceof Error ? error.message : String(error);
+              return new Error(message || 'Application is not authorized in 1AM / Lace wallet');
             })
           : apis,
       ),

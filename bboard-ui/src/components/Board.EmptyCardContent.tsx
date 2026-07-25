@@ -15,29 +15,17 @@
 
 import React, { useState } from 'react';
 import { type ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import { CardActions, CardContent, IconButton, Tooltip, Typography } from '@mui/material';
-import BoardAddIcon from '@mui/icons-material/PostAddOutlined';
-import CreateBoardIcon from '@mui/icons-material/AddCircleOutlined';
-import JoinBoardIcon from '@mui/icons-material/AddLinkOutlined';
+import { CardContent, Button, Stack, Typography, Box } from '@mui/material';
+import AddCircleIcon from '@mui/icons-material/AddCircleOutlined';
+import LinkIcon from '@mui/icons-material/Link';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { TextPromptDialog } from './TextPromptDialog';
 
-/**
- * The props required by the {@link EmptyCardContent} component.
- *
- * @internal
- */
 export interface EmptyCardContentProps {
-  /** A callback that will be called to create a new bulletin board. */
   onCreateBoardCallback: () => void;
-  /** A callback that will be called to join an existing bulletin board. */
   onJoinBoardCallback: (contractAddress: ContractAddress) => void;
 }
 
-/**
- * Used when there is no board deployment to render a UI allowing the user to join or deploy bulletin boards.
- *
- * @internal
- */
 export const EmptyCardContent: React.FC<Readonly<EmptyCardContentProps>> = ({
   onCreateBoardCallback,
   onJoinBoardCallback,
@@ -46,37 +34,79 @@ export const EmptyCardContent: React.FC<Readonly<EmptyCardContentProps>> = ({
 
   return (
     <React.Fragment>
-      <CardContent>
-        <Typography align="center" variant="h1" color="primary.dark">
-          <BoardAddIcon fontSize="large" />
+      <CardContent sx={{ p: 4, textAlign: 'center' }}>
+        <Box
+          sx={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(0, 242, 254, 0.1)',
+            color: '#00F2FE',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 2,
+            border: '1px solid rgba(0, 242, 254, 0.2)',
+          }}
+        >
+          <MenuBookIcon sx={{ fontSize: 32 }} />
+        </Box>
+
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#F8FAFC' }}>
+          Midnight Journal
         </Typography>
-        <Typography data-testid="board-posted-message" align="center" variant="body2" color="primary.dark">
-          Create a new Board, or join an existing one...
+
+        <Typography variant="body2" sx={{ color: '#94A3B8', mb: 3 }}>
+          Deploy a new ZK private journal contract on Preprod, or join an existing contract address.
         </Typography>
-      </CardContent>
-      <CardActions disableSpacing sx={{ justifyContent: 'center' }}>
-        <Tooltip title="Create a new board">
-          <IconButton data-testid="board-deploy-btn" onClick={onCreateBoardCallback}>
-            <CreateBoardIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Join an existing board">
-          <IconButton
-            data-testid="board-join-btn"
-            onClick={() => {
-              setTextPromptOpen(true);
+
+        <Stack spacing={2} sx={{ width: '100%' }}>
+          <Button
+            data-testid="board-deploy-btn"
+            variant="contained"
+            fullWidth
+            startIcon={<AddCircleIcon />}
+            onClick={onCreateBoardCallback}
+            sx={{
+              background: 'linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%)',
+              color: '#080A10',
+              fontWeight: 700,
+              py: 1.5,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)',
+              },
             }}
           >
-            <JoinBoardIcon />
-          </IconButton>
-        </Tooltip>
-      </CardActions>
+            Deploy New Journal
+          </Button>
+
+          <Button
+            data-testid="board-join-btn"
+            variant="outlined"
+            fullWidth
+            startIcon={<LinkIcon />}
+            onClick={() => setTextPromptOpen(true)}
+            sx={{
+              borderColor: 'rgba(255, 255, 255, 0.15)',
+              color: '#F8FAFC',
+              py: 1.5,
+              '&:hover': {
+                borderColor: '#7F00FF',
+                color: '#E100FF',
+                backgroundColor: 'rgba(127, 0, 255, 0.1)',
+              },
+            }}
+          >
+            Join Existing Contract
+          </Button>
+        </Stack>
+      </CardContent>
+
       <TextPromptDialog
-        prompt="Enter contract address"
+        prompt="Enter contract address (e.g. 0x...)"
         isOpen={textPromptOpen}
-        onCancel={() => {
-          setTextPromptOpen(false);
-        }}
+        onCancel={() => setTextPromptOpen(false)}
         onSubmit={(text) => {
           setTextPromptOpen(false);
           onJoinBoardCallback(text);

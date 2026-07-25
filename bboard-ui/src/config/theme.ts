@@ -15,26 +15,88 @@
 
 import { createTheme, alpha } from '@mui/material';
 
-const midnightGrey = alpha('#a8a8a8', 0.7);
-
 export const theme = createTheme({
-  typography: {
-    fontFamily: 'Helvetica',
-    allVariants: {
-      color: 'white',
-    },
-  },
   palette: {
+    mode: 'dark',
     primary: {
-      main: midnightGrey,
-      light: alpha(midnightGrey, 0.5),
-      dark: alpha(midnightGrey, 0.9),
+      main: '#00F2FE', // Neon Cyan
+      light: '#4FACFE',
+      dark: '#00C6FF',
+      contrastText: '#0B0F19',
     },
     secondary: {
-      main: '#8c8c8c',
+      main: '#7F00FF', // Neon Violet/Purple
+      light: '#E100FF',
+      dark: '#410099',
+      contrastText: '#FFFFFF',
     },
     background: {
-      default: '#464655',
+      default: '#080A10', // Deepest Obsidian
+      paper: 'rgba(15, 23, 42, 0.75)', // Glassmorphic panel
+    },
+    success: {
+      main: '#00FF88', // ZK Shielded Green
+    },
+    warning: {
+      main: '#FFB800',
+    },
+    error: {
+      main: '#FF3366',
+    },
+    text: {
+      primary: '#F8FAFC',
+      secondary: '#94A3B8',
+    },
+  },
+  typography: {
+    fontFamily: '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    h1: { fontWeight: 800, letterSpacing: '-0.02em' },
+    h2: { fontWeight: 700, letterSpacing: '-0.01em' },
+    h3: { fontWeight: 700 },
+    h4: { fontWeight: 600 },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
+    subtitle1: { fontWeight: 500, color: '#94A3B8' },
+    button: { textTransform: 'none', fontWeight: 600 },
+  },
+  shape: {
+    borderRadius: 16,
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: '#080A10',
+          color: '#F8FAFC',
+          fontFamily: '"Plus Jakarta Sans", sans-serif',
+          overflowX: 'hidden',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: 20,
+          boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 20px 0 rgba(0, 242, 254, 0.05)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          padding: '10px 20px',
+          fontWeight: 600,
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: '0 8px 25px -5px rgba(0, 242, 254, 0.3)',
+          },
+        },
+      },
     },
   },
 });
