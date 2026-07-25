@@ -1,0 +1,68 @@
+// Midnight Journal Smart Contract
+// Idea: journal (Private ZK-enabled journaling DApp on Midnight Network)
+
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+/**
+ * Privacy & Data Architecture:
+ * 
+ * 1. Public Data (On-Chain Ledger State):
+ *    - state: Current journal entry status (VACANT or OCCUPIED).
+ *    - message: The currently active journal entry text (disclosed on-chain when posted).
+ *    - sequence: Anti-replay entry counter incremented with each state change.
+ *    - owner: Zero-Knowledge derived public key commitment (hash of secret key + sequence).
+ * 
+ * 2. Private Data (Local Witness):
+ *    - localSecretKey: The user's private 32-byte secret key held strictly client-side.
+ * 
+ * 3. Zero-Knowledge Privacy Guarantees:
+ *    - The user's secret key `localSecretKey` is NEVER revealed to the network or ledger.
+ *    - Only a cryptographic hash commitment `publicKey(localSecretKey, sequence)` is disclosed.
+ *    - When removing or taking down an entry, the contract executes a ZK circuit assertion
+ *      proving that the requester possesses the matching private secret key corresponding to
+ *      `owner`, without exposing the secret key itself.
+ */
+
+export enum State {
+  VACANT,
+  OCCUPIED
+}
+
+export ledger state: State;
+
+export ledger message: Maybe<Opaque<"string">>;
+
+export ledger sequence: Counter;
+
+export ledger owner: Bytes<32>;
+
+constructor() {
+  state = State.VACANT;
+  message = none<Opaque<"string">>();
+  sequence.increment(1);
+}
+
+witness localSecretKey(): Bytes<32>;
+
+export circuit post(newMessage: Opaque<"string">): [] {
+  assert(state == State.VACANT, "Attempted to post to an occupied journal");
+  owner = disclose(publicKey(localSecretKey(), sequence as Field as Bytes<32>));
+  message = disclose(some<Opaque<"string">>(newMessage));
+  state = State.OCCUPIED;
+}
+
+export circuit takeDown(): Opaque<"string"> {
+  assert(state == State.OCCUPIED, "Attempted to take down entry from an empty journal");
+  assert(owner == publicKey(localSecretKey(), sequence as Field as Bytes<32>), "Attempted to take down entry, but not the current owner");
+  const formerMsg = message.value;
+  state = State.VACANT;
+  sequence.increment(1);
+  message = none<Opaque<"string">>();
+  return formerMsg;
+}
+
+export circuit publicKey(sk: Bytes<32>, sequence: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([pad(32, "journal:pk:"), sequence, sk]);
+}
