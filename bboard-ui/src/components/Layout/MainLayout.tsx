@@ -3,6 +3,7 @@ import { Box, Container, Typography, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Shield, LockKeyhole, Sparkles } from 'lucide-react';
 import { Header } from './Header';
+import { BackgroundCanvas } from './BackgroundCanvas';
 
 export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
@@ -17,6 +18,8 @@ export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         flexDirection: 'column',
       }}
     >
+      {/* Particle Constellation Background Canvas */}
+      <BackgroundCanvas />
       {/* Animated Floating Ambient Background Mesh Gradient Orbs */}
       <Box
         sx={{

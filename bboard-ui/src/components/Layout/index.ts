@@ -14,3 +14,5 @@
 // limitations under the License.
 
 export * from './MainLayout';
+export * from './AnimatedSidebar';
+export * from './BackgroundCanvas';

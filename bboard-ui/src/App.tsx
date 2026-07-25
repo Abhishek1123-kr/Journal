@@ -1,21 +1,6 @@
-// This file is part of midnightntwrk/example-bboard.
-// Copyright (C) Midnight Foundation
-// SPDX-License-Identifier: Apache-2.0
-// Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
-import { MainLayout, Board, DashboardStats, PrivacyExplanation } from './components';
+import { MainLayout, Board, DashboardStats, PrivacyExplanation, AnimatedSidebar } from './components';
 import { useDeployedBoardContext } from './hooks';
 import { type BoardDeployment } from './contexts';
 import { type Observable } from 'rxjs';
@@ -23,6 +8,7 @@ import { type Observable } from 'rxjs';
 const App: React.FC = () => {
   const boardApiProvider = useDeployedBoardContext();
   const [boardDeployments, setBoardDeployments] = useState<Array<Observable<BoardDeployment>>>([]);
+  const [activeSection, setActiveSection] = useState('dashboard');
 
   useEffect(() => {
     const subscription = boardApiProvider.boardDeployments$.subscribe(setBoardDeployments);
@@ -31,35 +17,57 @@ const App: React.FC = () => {
     };
   }, [boardApiProvider]);
 
+  const handleSelectSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(`section-${sectionId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#080A10' }}>
       <MainLayout>
-        {/* Real-Time Dashboard Statistics */}
-        <DashboardStats />
+        <Box sx={{ display: 'flex', gap: 3.5, width: '100%', alignItems: 'flex-start' }}>
+          {/* Collapsible Animated Side Navigation Bar */}
+          <AnimatedSidebar activeSection={activeSection} onSelectSection={handleSelectSection} />
 
-        {/* Dynamic Contract Deployments Workspace Grid */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            gap: 4,
-            width: '100%',
-            mb: 6,
-          }}
-        >
-          {boardDeployments.map((boardDeployment, idx) => (
-            <div data-testid={`board-${idx}`} key={`board-${idx}`}>
-              <Board boardDeployment$={boardDeployment} />
+          {/* Main Dashboard & Content Workspace */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Section: Dashboard Stats */}
+            <div id="section-dashboard">
+              <DashboardStats />
             </div>
-          ))}
-          <div data-testid="board-start">
-            <Board />
-          </div>
-        </Box>
 
-        {/* ZK Selective Disclosure & Privacy Explanation Section */}
-        <PrivacyExplanation />
+            {/* Section: Dynamic Contract Workspace Grid */}
+            <div id="section-proposals">
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: 4,
+                  width: '100%',
+                  mb: 6,
+                }}
+              >
+                {boardDeployments.map((boardDeployment, idx) => (
+                  <div data-testid={`board-${idx}`} key={`board-${idx}`}>
+                    <Board boardDeployment$={boardDeployment} />
+                  </div>
+                ))}
+                <div data-testid="board-start">
+                  <Board />
+                </div>
+              </Box>
+            </div>
+
+            {/* Section: Privacy Hub & ZK Circuit Engine */}
+            <div id="section-privacy">
+              <PrivacyExplanation />
+            </div>
+          </Box>
+        </Box>
       </MainLayout>
     </Box>
   );
