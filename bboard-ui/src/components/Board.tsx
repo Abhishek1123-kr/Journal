@@ -125,6 +125,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
           backgroundColor: 'rgba(15, 23, 42, 0.75)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
+          clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
           boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 25px 0 rgba(0, 242, 254, 0.08)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
@@ -133,6 +134,19 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
           },
         }}
       >
+        {/* Top-Right Glowing Corner Bracket Accent */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: 14,
+            height: 14,
+            borderTop: '2px solid #00F2FE',
+            borderRight: '2px solid #00F2FE',
+            boxShadow: '0 0 10px #00F2FE',
+          }}
+        />
         {!boardDeployment$ && (
           <EmptyCardContent onCreateBoardCallback={onCreateBoard} onJoinBoardCallback={onJoinBoard} />
         )}

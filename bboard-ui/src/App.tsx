@@ -11,6 +11,7 @@ import {
   HowItWorksSection,
   ArchitectureSection,
   FaqSection,
+  BlockchainLoader,
 } from './components';
 import { useDeployedBoardContext } from './hooks';
 import { type BoardDeployment } from './contexts';
@@ -20,6 +21,7 @@ const App: React.FC = () => {
   const boardApiProvider = useDeployedBoardContext();
   const [boardDeployments, setBoardDeployments] = useState<Array<Observable<BoardDeployment>>>([]);
   const [activeSection, setActiveSection] = useState('overview');
+  const [isDeploying, setIsDeploying] = useState(false);
 
   useEffect(() => {
     const subscription = boardApiProvider.boardDeployments$.subscribe(setBoardDeployments);
@@ -37,12 +39,15 @@ const App: React.FC = () => {
   };
 
   const handleDeployClick = () => {
+    setIsDeploying(true);
     boardApiProvider.resolve();
     handleNavigateSection('section-proposals');
+    setTimeout(() => setIsDeploying(false), 4500);
   };
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#080A10' }}>
+      <BlockchainLoader isLoading={isDeploying} />
       <MainLayout onNavigateSection={handleNavigateSection}>
         {/* Section 01: Hero Section */}
         <HeroSection

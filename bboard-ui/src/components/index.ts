@@ -18,3 +18,4 @@ export * from './Board';
 export * from './PrivacyExplanation';
 export * from './DashboardStats';
 export * from './Landing';
+export * from './Common';
