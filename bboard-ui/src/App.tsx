@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
-import { MainLayout, Board, DashboardStats, PrivacyExplanation, AnimatedSidebar } from './components';
+import {
+  MainLayout,
+  Board,
+  DashboardStats,
+  PrivacyExplanation,
+  AnimatedSidebar,
+  HeroSection,
+  FeaturesSection,
+  HowItWorksSection,
+  ArchitectureSection,
+  FaqSection,
+} from './components';
 import { useDeployedBoardContext } from './hooks';
 import { type BoardDeployment } from './contexts';
 import { type Observable } from 'rxjs';
@@ -8,7 +19,7 @@ import { type Observable } from 'rxjs';
 const App: React.FC = () => {
   const boardApiProvider = useDeployedBoardContext();
   const [boardDeployments, setBoardDeployments] = useState<Array<Observable<BoardDeployment>>>([]);
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('overview');
 
   useEffect(() => {
     const subscription = boardApiProvider.boardDeployments$.subscribe(setBoardDeployments);
@@ -17,29 +28,41 @@ const App: React.FC = () => {
     };
   }, [boardApiProvider]);
 
-  const handleSelectSection = (sectionId: string) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(`section-${sectionId}`);
+  const handleNavigateSection = (sectionId: string) => {
+    setActiveSection(sectionId.replace('section-', ''));
+    const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  const handleDeployClick = () => {
+    boardApiProvider.resolve();
+    handleNavigateSection('section-proposals');
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#080A10' }}>
-      <MainLayout>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, width: '100%', alignItems: 'flex-start' }}>
-          {/* Collapsible Animated Side Navigation Bar */}
-          <AnimatedSidebar activeSection={activeSection} onSelectSection={handleSelectSection} />
+      <MainLayout onNavigateSection={handleNavigateSection}>
+        {/* Section 01: Hero Section */}
+        <HeroSection
+          onDeployClick={handleDeployClick}
+          onViewDashboardClick={() => handleNavigateSection('section-dashboard')}
+        />
 
-          {/* Main Dashboard & Content Workspace */}
+        {/* Section 02: Dashboard Workspace with Side Navigation Bar */}
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, width: '100%', alignItems: 'flex-start', mb: 8 }}>
+          {/* Collapsible Animated Side Navigation Bar */}
+          <AnimatedSidebar activeSection={activeSection} onSelectSection={handleNavigateSection} />
+
+          {/* Main Dashboard Workspace */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* Section: Dashboard Stats */}
+            {/* Real-Time Dashboard Statistics */}
             <div id="section-dashboard">
               <DashboardStats />
             </div>
 
-            {/* Section: Dynamic Contract Workspace Grid */}
+            {/* Dynamic Contract Workspace Grid */}
             <div id="section-proposals">
               <Box
                 sx={{
@@ -62,12 +85,24 @@ const App: React.FC = () => {
               </Box>
             </div>
 
-            {/* Section: Privacy Hub & ZK Circuit Engine */}
+            {/* ZK Selective Disclosure & Privacy Explanation Section */}
             <div id="section-privacy">
               <PrivacyExplanation />
             </div>
           </Box>
         </Box>
+
+        {/* Section 03: Features Showcase */}
+        <FeaturesSection />
+
+        {/* Section 04: How It Works Protocol Timeline */}
+        <HowItWorksSection />
+
+        {/* Section 05: System Architecture & Tech Stack */}
+        <ArchitectureSection />
+
+        {/* Section 06: Frequently Asked Questions */}
+        <FaqSection />
       </MainLayout>
     </Box>
   );
