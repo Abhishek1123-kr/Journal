@@ -38,10 +38,18 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   const [boardState, setBoardState] = useState<BBoardDerivedState>();
   const [messagePrompt, setMessagePrompt] = useState<string>();
   const [isWorking, setIsWorking] = useState(!!boardDeployment$);
+  const [isDismissed, setIsDismissed] = useState(false);
 
-  const onCreateBoard = useCallback(() => boardApiProvider.resolve(), [boardApiProvider]);
+  const onCreateBoard = useCallback(() => {
+    setIsDismissed(false);
+    boardApiProvider.resolve();
+  }, [boardApiProvider]);
+
   const onJoinBoard = useCallback(
-    (contractAddress: ContractAddress) => boardApiProvider.resolve(contractAddress),
+    (contractAddress: ContractAddress) => {
+      setIsDismissed(false);
+      boardApiProvider.resolve(contractAddress);
+    },
     [boardApiProvider],
   );
 
@@ -80,6 +88,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
 
   useEffect(() => {
     if (!boardDeployment$) return;
+    setIsDismissed(false);
     const subscription = boardDeployment$.subscribe(setBoardDeployment);
     return () => {
       subscription.unsubscribe();
@@ -147,11 +156,11 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
             boxShadow: '0 0 10px #00F2FE',
           }}
         />
-        {!boardDeployment$ && (
+        {(!boardDeployment$ || isDismissed) && (
           <EmptyCardContent onCreateBoardCallback={onCreateBoard} onJoinBoardCallback={onJoinBoard} />
         )}
 
-        {boardDeployment$ && (
+        {boardDeployment$ && !isDismissed && (
           <React.Fragment>
             {/* ZK Working Backdrop Loading Indicator */}
             <Backdrop
@@ -228,8 +237,24 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
                   borderRadius: 3,
                   fontSize: '0.8rem',
                 }}
-                onClose={() => setErrorMessage(undefined)}
+                onClose={() => {
+                  setErrorMessage(undefined);
+                  setIsDismissed(true);
+                }}
                 data-testid="board-error-message"
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      setErrorMessage(undefined);
+                      setIsDismissed(true);
+                    }}
+                    sx={{ color: '#FF3366', fontWeight: 700, fontSize: '0.75rem', textTransform: 'none' }}
+                  >
+                    Reset Card
+                  </Button>
+                }
               >
                 {errorMessage}
               </Alert>
