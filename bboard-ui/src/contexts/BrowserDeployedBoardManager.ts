@@ -217,19 +217,25 @@ export class BrowserDeployedBoardManager implements DeployedBoardAPIProvider {
 }
 
 /** @internal */
+/** @internal */
 const initializeProviders = async (logger: Logger): Promise<BBoardProviders> => {
   const networkId = import.meta.env.VITE_NETWORK_ID as NetworkId;
   const connectedAPI = await connectToWallet(logger, networkId);
   const zkConfigPath = window.location.origin; // '../../../contract/src/managed/bboard';
   const keyMaterialProvider = new FetchZkConfigProvider<BBoardCircuitKeys>(zkConfigPath, fetch.bind(window));
-  const config = await connectedAPI.getConfiguration();
+  const config = (await connectedAPI.getConfiguration()) || {};
   const inMemoryBBoardPrivateStateProvider = inMemoryPrivateStateProvider<string, BBoardPrivateState>();
   const shieldedAddresses = await connectedAPI.getShieldedAddresses();
+  
+  const proverServerUri = config.proverServerUri || 'http://localhost:6300';
+  const indexerUri = config.indexerUri || 'https://indexer.preprod.midnight.network/api/v1/graphql';
+  const indexerWsUri = config.indexerWsUri || 'wss://indexer.preprod.midnight.network/api/v1/graphql/ws';
+
   return {
     privateStateProvider: inMemoryBBoardPrivateStateProvider,
     zkConfigProvider: keyMaterialProvider,
-    proofProvider: httpClientProofProvider(config.proverServerUri!, keyMaterialProvider),
-    publicDataProvider: indexerPublicDataProvider(config.indexerUri, config.indexerWsUri),
+    proofProvider: httpClientProofProvider(proverServerUri, keyMaterialProvider),
+    publicDataProvider: indexerPublicDataProvider(indexerUri, indexerWsUri),
     walletProvider: {
       getCoinPublicKey(): string {
         return shieldedAddresses.shieldedCoinPublicKey;
@@ -267,11 +273,21 @@ const initializeProviders = async (logger: Logger): Promise<BBoardProviders> => 
 };
 
 /** @internal */
-/** @internal */
 const getFirstCompatibleWallet = (): InitialAPI | undefined => {
   if (typeof window === 'undefined' || !window.midnight) return undefined;
-  // Check for 1AM, Lace, or any valid Midnight DApp Connector extension in window.midnight
-  const wallets = Object.values(window.midnight);
+  const midnightObj = window.midnight as Record<string, any>;
+
+  // Prioritize 1AM wallet explicitly if present, then Lace, then any available Midnight wallet extension
+  if (midnightObj['1am'] && typeof midnightObj['1am'].connect === 'function') {
+    return midnightObj['1am'] as InitialAPI;
+  }
+  if (midnightObj.oneAm && typeof midnightObj.oneAm.connect === 'function') {
+    return midnightObj.oneAm as InitialAPI;
+  }
+  if (midnightObj.lace && typeof midnightObj.lace.connect === 'function') {
+    return midnightObj.lace as InitialAPI;
+  }
+  const wallets = Object.values(midnightObj);
   return wallets.find(
     (wallet): wallet is InitialAPI =>
       !!wallet &&
@@ -285,7 +301,7 @@ const getFirstCompatibleWallet = (): InitialAPI | undefined => {
 const connectToWallet = (logger: Logger, networkId: string): Promise<ConnectedAPI> => {
   return firstValueFrom(
     fnPipe(
-      interval(100),
+      interval(200),
       map(() => getFirstCompatibleWallet()),
       tap((connectorAPI) => {
         if (connectorAPI) {
@@ -294,15 +310,15 @@ const connectToWallet = (logger: Logger, networkId: string): Promise<ConnectedAP
       }),
       filter((connectorAPI): connectorAPI is InitialAPI => !!connectorAPI),
       tap((connectorAPI) => {
-        logger.info(connectorAPI, 'Connecting to Midnight wallet connector API...');
+        logger.info(connectorAPI, 'Requesting connection to Midnight wallet (1AM / Lace)...');
       }),
       take(1),
       timeout({
-        first: 8_000,
+        first: 10_000,
         with: () =>
           throwError(() => {
             logger.error('Could not find Midnight wallet connector API');
-            return new Error('Could not find Midnight wallet extension (1AM / Lace). Please ensure your wallet extension is installed and enabled.');
+            return new Error('Could not find Midnight wallet extension (1AM / Lace). Please ensure your extension is installed and enabled.');
           }),
       }),
       concatMap(async (initialAPI) => {
@@ -320,14 +336,6 @@ const connectToWallet = (logger: Logger, networkId: string): Promise<ConnectedAP
         const connectionStatus = await connectedAPI.getConnectionStatus();
         logger.info(connectionStatus, 'Wallet connector API status check');
         return connectedAPI;
-      }),
-      timeout({
-        first: 15_000,
-        with: () =>
-          throwError(() => {
-            logger.error('Wallet connector API timed out waiting for authorization');
-            return new Error('Midnight wallet prompt timed out. Please click "Authorize" or unlock your 1AM / Lace wallet extension.');
-          }),
       }),
       catchError((error, apis) =>
         error
