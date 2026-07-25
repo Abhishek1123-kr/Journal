@@ -2,6 +2,8 @@
 
 > A private, zero-knowledge journaling application built on the Midnight Network, allowing users to securely record, verify, and manage personal journal entries on-chain without revealing private secret keys.
 
+🌐 **Live Demo**: [https://journal-six-wheat.vercel.app](https://journal-six-wheat.vercel.app)
+
 ---
 
 ## Contract Address
