@@ -15,3 +15,5 @@
 
 export * from './Layout';
 export * from './Board';
+export * from './PrivacyExplanation';
+export * from './DashboardStats';

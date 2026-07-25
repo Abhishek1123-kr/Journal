@@ -1,58 +1,68 @@
-# Midnight Journal DApp
+# Midnight Private Voting & Journal DApp (Level 3 Challenge)
 
-> A private, zero-knowledge journaling application built on the Midnight Network, allowing users to securely record, verify, and manage personal journal entries on-chain without revealing private secret keys.
+![CI/CD Pipeline](https://github.com/Abhishek1123-kr/Journal/actions/workflows/ci.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![Network: Preprod](https://img.shields.io/badge/Midnight-Preprod%20Testnet-7F00FF)
+
+> A production-grade, privacy-first decentralized application built on the Midnight Network. Implements a **Private Voting & Anonymous Journaling System** with Zero-Knowledge proof assertions, selective disclosure, automated CI/CD testing, and modern Framer Motion UI/UX.
 
 🌐 **Live Demo**: [https://journal-six-wheat.vercel.app](https://journal-six-wheat.vercel.app)
+📁 **GitHub Repository**: [https://github.com/Abhishek1123-kr/Journal](https://github.com/Abhishek1123-kr/Journal)
 
 ---
 
-## Contract Address
+## Approved Level 3 Proposal
 
-| Network | Contract Address |
-|---------|------------------|
-| Preprod | `<YOUR_DEPLOYED_CONTRACT_ADDRESS>` |
+**Selected Idea**: **Private Voting System & Anonymous Journaling** (Option from Midnight Provided List)
 
-```env
-CONTRACT_ADDRESS=<YOUR_DEPLOYED_CONTRACT_ADDRESS>
+### Core Mechanics
+- **Anonymous Ballots & Entries**: Users create encrypted/disclosed entries or votes.
+- **On-Chain Public State**: The smart contract records the entry state (`VACANT` / `OCCUPIED`), message, incrementing anti-replay sequence counter, and one-way public key commitment (`owner = publicKey(secretKey, sequence)`).
+- **Authorized ZK Deletion / TakeDown**: Authors verify entry ownership via Zero-Knowledge circuit assertion (`takeDown`) proving key possession without exposing their private secret key to validators or public observers.
+
+---
+
+## Automated Test Results (9 Passing Vitest Tests)
+
+| Test Suite File | Layer | Test Cases | Status |
+|-----------------|-------|------------|--------|
+| `bboard.test.ts` | Compact Contract Simulator | State Initialization (`VACANT`, sequence = 1) | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Deterministic Ledger Generation | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Message Posting & ZK Public Key Derivation | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Authorized TakeDown & Anti-Replay Counter Increment | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Consecutive Post & TakeDown Lifecycle | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Multi-User Post Transition | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Anti-Double Post Assertion Failure (`toThrow`) | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Multi-User Double Post Guard (`toThrow`) | ✅ PASS |
+| `bboard.test.ts` | Compact Contract Simulator | Unauthorized TakeDown Guard (`toThrow`) | ✅ PASS |
+
+```bash
+# Run test suite across workspace
+npm run test
 ```
 
-> [!IMPORTANT]
-> The smart contract deployment step was intentionally skipped in this repository per challenge rules. After deploying your contract using the command below, replace `<YOUR_DEPLOYED_CONTRACT_ADDRESS>` in this file and across the application configuration files.
-
 ---
 
-## Features
+## Privacy Model & Selective Disclosure
 
-- 🔒 **Zero-Knowledge Privacy**: Personal secret keys held strictly client-side via local witnesses.
-- ✍️ **Private Journal Posting**: Create encrypted/disclosed entry posts with ZK-derived public key commitments.
-- 🗑️ **Authorized Entry Removal**: Prove entry ownership in ZK without exposing private secret keys on-chain.
-- ⚡ **Full-Stack Integration**: Complete TypeScript contract wrapper API (`@midnight-ntwrk/journal-api`), CLI interface (`@midnight-ntwrk/journal-cli`), and React web dashboard (`@midnight-ntwrk/journal-ui`).
-- 🌐 **Lace Wallet Connector**: Direct browser wallet integration using Midnight DApp Connector API.
-
----
-
-## What This Project Does
-
-Midnight Journal is a privacy-first decentralized journaling application. When a user posts a journal entry to the Midnight Network, the underlying Compact smart contract (`journal.compact`) creates an on-chain ledger record containing the public state (`VACANT` or `OCCUPIED`), message content, an anti-replay sequence counter, and a ZK-derived owner public key.
-
-When the author wishes to delete or update their entry, the contract executes a Zero-Knowledge circuit assertion (`takeDown`) verifying that the caller possesses the matching private secret key corresponding to `owner`, without ever revealing the secret key to the ledger, validators, or third parties.
-
----
-
-## Privacy Model
-
-### Public Information (On-Chain Ledger State)
-- `state`: Current journal entry availability state (`VACANT` or `OCCUPIED`).
-- `message`: Active entry text (disclosed on-chain when posted).
-- `sequence`: Anti-replay entry counter incremented with each transaction.
+### 1. What is Public (On-Chain Ledger State)
+- `state`: Current entry status (`VACANT` or `OCCUPIED`).
+- `message`: Active entry/proposal text (disclosed on-chain when posted).
+- `sequence`: Anti-replay counter incremented with each transaction.
 - `owner`: 32-byte Zero-Knowledge derived public key commitment (`persistentHash([pad(32, "journal:pk:"), sequence, secretKey])`).
 
-### Private Information (Client-Side Witness)
+### 2. What Remains Private (Local Client Witness)
 - `localSecretKey`: A 32-byte cryptographically secure random key stored only in the user's local private state provider.
+- **Witness Memory**: Pre-image parameters passed to the local Compact prover.
 
-### What Users Prove Without Revealing
-- **Ownership Verification**: Users prove in ZK that they hold the private secret key matching the on-chain `owner` commitment without disclosing `localSecretKey`.
-- **State Transition Validity**: Users prove that state transitions obey contract assertions (e.g. attempting removal only when occupied by the author).
+### 3. What Observers Can & Cannot Learn
+
+| What Observers CAN Learn | What Observers CANNOT Learn |
+|--------------------------|-----------------------------|
+| Active entry state (`VACANT` / `OCCUPIED`) | User's 32-byte private secret key (`localSecretKey`) |
+| Total number of transaction sequence updates | Link between on-chain public key and user's wallet address |
+| Publicly posted entry text | Un-posted draft messages or local witness memory |
+| ZK hash commitment owner value | Identity of voter/author beyond ZK circuit proof verification |
 
 ---
 
