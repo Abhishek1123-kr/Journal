@@ -90,14 +90,15 @@ const App: React.FC = () => {
                       mb: 6,
                     }}
                   >
-                    {boardDeployments.map((boardDeployment, idx) => (
-                      <div data-testid={`board-${idx}`} key={`board-${idx}`}>
-                        <Board boardDeployment$={boardDeployment} />
+                    {boardDeployments.length > 0 ? (
+                      <div data-testid="board-latest">
+                        <Board boardDeployment$={boardDeployments[boardDeployments.length - 1]} />
                       </div>
-                    ))}
-                    <div data-testid="board-start">
-                      <Board />
-                    </div>
+                    ) : (
+                      <div data-testid="board-start">
+                        <Board />
+                      </div>
+                    )}
                   </Box>
                   <PrivacyExplanation />
                 </motion.div>
@@ -122,14 +123,15 @@ const App: React.FC = () => {
                       mb: 6,
                     }}
                   >
-                    {boardDeployments.map((boardDeployment, idx) => (
-                      <div data-testid={`board-${idx}`} key={`board-${idx}`}>
-                        <Board boardDeployment$={boardDeployment} />
+                    {boardDeployments.length > 0 ? (
+                      <div data-testid="board-latest">
+                        <Board boardDeployment$={boardDeployments[boardDeployments.length - 1]} />
                       </div>
-                    ))}
-                    <div data-testid="board-start">
-                      <Board />
-                    </div>
+                    ) : (
+                      <div data-testid="board-start">
+                        <Board />
+                      </div>
+                    )}
                   </Box>
                 </motion.div>
               )}
