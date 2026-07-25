@@ -65,6 +65,16 @@ export const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: `
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        @keyframes shimmerSheen {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
         @keyframes floatGlow {
           0% { transform: translateY(0px) scale(1); opacity: 0.4; }
           50% { transform: translateY(-20px) scale(1.1); opacity: 0.7; }
