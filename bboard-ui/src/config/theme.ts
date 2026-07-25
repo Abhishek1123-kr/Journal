@@ -64,14 +64,33 @@ export const theme = createTheme({
   },
   components: {
     MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          backgroundColor: '#080A10',
-          color: '#F8FAFC',
-          fontFamily: '"Plus Jakarta Sans", sans-serif',
-          overflowX: 'hidden',
-        },
-      },
+      styleOverrides: `
+        @keyframes floatGlow {
+          0% { transform: translateY(0px) scale(1); opacity: 0.4; }
+          50% { transform: translateY(-20px) scale(1.1); opacity: 0.7; }
+          100% { transform: translateY(0px) scale(1); opacity: 0.4; }
+        }
+        @keyframes pulseBorder {
+          0% { border-color: rgba(0, 242, 254, 0.2); box-shadow: 0 0 15px rgba(0, 242, 254, 0.1); }
+          50% { border-color: rgba(0, 242, 254, 0.6); box-shadow: 0 0 25px rgba(0, 242, 254, 0.3); }
+          100% { border-color: rgba(0, 242, 254, 0.2); box-shadow: 0 0 15px rgba(0, 242, 254, 0.1); }
+        }
+        @keyframes shimmerText {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes fadeInScale {
+          0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        body {
+          background-color: #080A10;
+          color: #F8FAFC;
+          font-family: "Plus Jakarta Sans", sans-serif;
+          overflow-x: hidden;
+        }
+      `,
     },
     MuiCard: {
       styleOverrides: {
@@ -82,6 +101,12 @@ export const theme = createTheme({
           borderRadius: 20,
           boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 20px 0 rgba(0, 242, 254, 0.05)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          animation: 'fadeInScale 0.4s ease-out forwards',
+          '&:hover': {
+            borderColor: 'rgba(0, 242, 254, 0.4)',
+            transform: 'translateY(-4px)',
+            boxShadow: '0 25px 50px -12px rgba(0, 242, 254, 0.25)',
+          },
         },
       },
     },

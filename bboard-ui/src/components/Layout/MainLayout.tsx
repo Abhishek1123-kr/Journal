@@ -25,15 +25,45 @@ export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       sx={{
         minHeight: '100vh',
         backgroundColor: '#080A10',
-        backgroundImage: `
-          radial-gradient(circle at 15% 20%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
-          radial-gradient(circle at 85% 75%, rgba(127, 0, 255, 0.08) 0%, transparent 40%)
-        `,
+        position: 'relative',
+        overflow: 'hidden',
         color: '#F8FAFC',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
+      {/* Animated Floating Ambient Background Orbs */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '-10%',
+          left: '15%',
+          width: 450,
+          height: 450,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0, 242, 254, 0.15) 0%, rgba(0, 242, 254, 0) 70%)',
+          filter: 'blur(60px)',
+          animation: 'floatGlow 8s ease-in-out infinite',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: '10%',
+          right: '10%',
+          width: 500,
+          height: 500,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(127, 0, 255, 0.15) 0%, rgba(127, 0, 255, 0) 70%)',
+          filter: 'blur(70px)',
+          animation: 'floatGlow 10s ease-in-out infinite 2s',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
       <Header />
 
       <Container maxWidth="lg" sx={{ py: 6, flex: 1, display: 'flex', flexDirection: 'column' }}>
