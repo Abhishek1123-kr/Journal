@@ -40,6 +40,6 @@
   },
   "optionalDependencies": {
     "@rolldown/binding-win32-x64-msvc": "^1.0.3",
-    "@rollup/rollup-win32-x64-msvc": "^4.62.2"
+    "@rollup/rollup-win32-x64-msvc": "^4.62.4"
   }
 }
